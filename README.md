@@ -56,7 +56,7 @@ Este sistema permite registrar, listar y gestionar averías de clientes con las 
      ```
      CI_ENVIRONMENT = development
      database.default.hostname = localhost
-     database.default.database = wowdb
+     database.default.database = WOWDB
      database.default.username = tu_usuario
      database.default.password = tu_contraseña
      database.default.DBDriver = MySQLi
@@ -64,16 +64,8 @@ Este sistema permite registrar, listar y gestionar averías de clientes con las 
 
 4. **Crear la base de datos**
    ```sql
-   CREATE DATABASE wowdb;
-   USE wowdb;
-   
-   CREATE TABLE averias (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       cliente VARCHAR(50) NOT NULL,
-       problema VARCHAR(100) NOT NULL,
-       fechaHora DATETIME NOT NULL,
-       status ENUM('pendiente', 'solucionado') DEFAULT 'pendiente' NOT NULL
-   );
+   CREATE DATABASE WOWDB;
+   USE WOWDB;
    ```
 
 5. **Ejecutar migraciones** (opcional)
@@ -101,8 +93,8 @@ Presiona Ctrl+C para detener el servidor
 
 ### Acceder al Sistema
 
-1. **Registrar Averías**: `http://tu-dominio/averias/registrar`
-2. **Listar Averías**: `http://tu-dominio/averias/listar`
+1. **Registrar Averías**: `http://chat.test/averias/registrar`
+2. **Listar Averías**: `http://chat.test/averias/listar`
 
 ### Funcionalidades Principales
 
@@ -156,22 +148,6 @@ server.php                   # Servidor WebSocket independiente
 - **WebSocketClient.php**: Cliente que envía notificaciones desde PHP
 - **JavaScript Client**: Código frontend que recibe actualizaciones en tiempo real
 
-## Características Técnicas
-
-### Seguridad
-- Validación de datos en servidor y cliente
-- Escape de HTML para prevenir XSS
-- Uso de CSRF tokens en formularios
-- Conexiones WebSocket con reconexión automática
-
-### Performance
-- Actualizaciones selectivas del DOM
-- Reconexión automática en caso de pérdida de conexión
-- Indicadores visuales de estado de conexión
-- Notificaciones temporales no intrusivas
-
-## Troubleshooting
-
 ### Problemas Comunes
 
 1. **WebSocket no conecta**:
@@ -189,15 +165,3 @@ server.php                   # Servidor WebSocket independiente
    - Comprobar que el servidor WebSocket esté activo
    - Revisar logs del servidor para errores
 
-## Contribución
-
-Para contribuir al proyecto:
-
-1. Fork del repositorio
-2. Crear rama para nueva funcionalidad
-3. Realizar cambios con tests apropiados
-4. Enviar pull request con descripción detallada
-
-## Licencia
-
-Este proyecto está bajo la licencia MIT. Ver archivo LICENSE para más detalles.
