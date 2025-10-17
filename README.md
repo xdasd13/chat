@@ -1,68 +1,203 @@
-# CodeIgniter 4 Application Starter
+# Sistema de Gestión de Averías
 
-## What is CodeIgniter?
+Sistema web desarrollado en CodeIgniter 4 para la gestión de averías con actualizaciones en tiempo real mediante WebSockets.
 
-CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
-More information can be found at the [official site](https://codeigniter.com).
+## Descripción
 
-This repository holds a composer-installable app starter.
-It has been built from the
-[development repository](https://github.com/codeigniter4/CodeIgniter4).
+Este sistema permite registrar, listar y gestionar averías de clientes con las siguientes características:
 
-More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
+- Registro de nuevas averías con cliente y descripción del problema
+- Fecha y hora automática del sistema
+- Estado automático inicial como "pendiente"
+- Listado de todas las averías con posibilidad de cambiar estados
+- Actualizaciones en tiempo real sin necesidad de refrescar la página
+- Comunicación bidireccional mediante WebSockets
 
-You can read the [user guide](https://codeigniter.com/user_guide/)
-corresponding to the latest version of the framework.
+## Características Principales
 
-## Installation & updates
+### Funcionalidades del Sistema
+- **Registro de Averías**: Formulario simple para registrar cliente y problema
+- **Listado Dinámico**: Vista de todas las averías con filtros por estado
+- **Cambio de Estados**: Posibilidad de marcar averías como solucionadas o pendientes
+- **Tiempo Real**: Actualizaciones instantáneas entre múltiples navegadores
+- **Contadores Automáticos**: Estadísticas en tiempo real de averías pendientes y solucionadas
 
-`composer create-project codeigniter4/appstarter` then `composer update` whenever
-there is a new release of the framework.
+### Tecnologías Utilizadas
+- **Backend**: CodeIgniter 4, PHP 8.1+
+- **Frontend**: Bootstrap 5, JavaScript ES6
+- **Base de Datos**: MySQL/MariaDB
+- **WebSockets**: Ratchet (ReactPHP)
+- **Tiempo Real**: WebSocket Server personalizado
 
-When updating, check the release notes to see if there are any changes you might need to apply
-to your `app` folder. The affected files can be copied or merged from
-`vendor/codeigniter4/framework/app`.
+## Instalación
 
-## Setup
+### Requisitos Previos
+- PHP 8.1 o superior
+- Composer
+- MySQL/MariaDB
+- Servidor web (Apache/Nginx)
 
-Copy `env` to `.env` and tailor for your app, specifically the baseURL
-and any database settings.
+### Pasos de Instalación
 
-## Important Change with index.php
+1. **Clonar el repositorio**
+   ```bash
+   git clone <repository-url>
+   cd chat
+   ```
 
-`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
-for better security and separation of components.
+2. **Instalar dependencias**
+   ```bash
+   composer install
+   ```
 
-This means that you should configure your web server to "point" to your project's *public* folder, and
-not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
-framework are exposed.
+3. **Configurar el entorno**
+   - Copiar `.env.example` a `.env`
+   - Configurar la base de datos en `.env`:
+     ```
+     CI_ENVIRONMENT = development
+     database.default.hostname = localhost
+     database.default.database = wowdb
+     database.default.username = tu_usuario
+     database.default.password = tu_contraseña
+     database.default.DBDriver = MySQLi
+     ```
 
-**Please** read the user guide for a better explanation of how CI4 works!
+4. **Crear la base de datos**
+   ```sql
+   CREATE DATABASE wowdb;
+   USE wowdb;
+   
+   CREATE TABLE averias (
+       id INT AUTO_INCREMENT PRIMARY KEY,
+       cliente VARCHAR(50) NOT NULL,
+       problema VARCHAR(100) NOT NULL,
+       fechaHora DATETIME NOT NULL,
+       status ENUM('pendiente', 'solucionado') DEFAULT 'pendiente' NOT NULL
+   );
+   ```
 
-## Repository Management
+5. **Ejecutar migraciones** (opcional)
+   ```bash
+   php spark migrate
+   ```
 
-We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
-We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
-FEATURE REQUESTS.
+## Uso del Sistema
 
-This repository is a "distribution" one, built by our release preparation script.
-Problems with it can be raised on our forum, or as issues in the main repository.
+### Iniciar el Servidor WebSocket
 
-## Server Requirements
+Para habilitar las actualizaciones en tiempo real, debe iniciarse el servidor WebSocket:
 
-PHP version 8.1 or higher is required, with the following extensions installed:
+```bash
+php server.php
+```
 
-- [intl](http://php.net/manual/en/intl.requirements.php)
-- [mbstring](http://php.net/manual/en/mbstring.installation.php)
+El servidor se ejecutará en el puerto 8080 y mostrará:
+```
+=== Servidor WebSocket de Averías ===
+Servidor iniciado en puerto 8080
+URL: ws://localhost:8080
+Presiona Ctrl+C para detener el servidor
+```
 
-> [!WARNING]
-> - The end of life date for PHP 7.4 was November 28, 2022.
-> - The end of life date for PHP 8.0 was November 26, 2023.
-> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
-> - The end of life date for PHP 8.1 will be December 31, 2025.
+### Acceder al Sistema
 
-Additionally, make sure that the following extensions are enabled in your PHP:
+1. **Registrar Averías**: `http://tu-dominio/averias/registrar`
+2. **Listar Averías**: `http://tu-dominio/averias/listar`
 
-- json (enabled by default - don't turn it off)
-- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
-- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
+### Funcionalidades Principales
+
+#### Registro de Averías
+- Acceder al formulario de registro
+- Completar los campos: Cliente y Problema
+- La fecha, hora y estado se asignan automáticamente
+- Al guardar, se redirige a la lista y se notifica en tiempo real
+
+#### Gestión de Averías
+- Ver todas las averías en una tabla responsive
+- Cambiar estado entre "pendiente" y "solucionado"
+- Ver contadores automáticos de estados
+- Recibir actualizaciones en tiempo real sin refrescar
+
+## Estructura del Proyecto
+
+```
+app/
+├── Controllers/
+│   └── Averias.php          # Controlador principal
+├── Models/
+│   └── AveriasModel.php     # Modelo de datos
+├── Views/
+│   └── averias/
+│       ├── listar.php       # Vista de listado
+│       └── registrar.php    # Vista de registro
+├── WebSocket/
+│   └── AveriasWebSocket.php # Servidor WebSocket
+├── Libraries/
+│   └── WebSocketClient.php  # Cliente WebSocket
+└── Config/
+    └── Routes.php           # Configuración de rutas
+
+server.php                   # Servidor WebSocket independiente
+```
+
+## Arquitectura WebSocket
+
+### Flujo de Comunicación
+
+1. **Registro de Avería**:
+   - Usuario completa formulario → Controlador guarda en BD → Notifica WebSocket → Actualiza todas las vistas conectadas
+
+2. **Cambio de Estado**:
+   - Usuario cambia estado → Controlador actualiza BD → Notifica WebSocket → Actualiza todas las vistas conectadas
+
+### Componentes WebSocket
+
+- **AveriasWebSocket.php**: Servidor que maneja conexiones y mensajes
+- **WebSocketClient.php**: Cliente que envía notificaciones desde PHP
+- **JavaScript Client**: Código frontend que recibe actualizaciones en tiempo real
+
+## Características Técnicas
+
+### Seguridad
+- Validación de datos en servidor y cliente
+- Escape de HTML para prevenir XSS
+- Uso de CSRF tokens en formularios
+- Conexiones WebSocket con reconexión automática
+
+### Performance
+- Actualizaciones selectivas del DOM
+- Reconexión automática en caso de pérdida de conexión
+- Indicadores visuales de estado de conexión
+- Notificaciones temporales no intrusivas
+
+## Troubleshooting
+
+### Problemas Comunes
+
+1. **WebSocket no conecta**:
+   - Verificar que el servidor esté ejecutándose: `php server.php`
+   - Comprobar que el puerto 8080 esté disponible
+   - Revisar la consola del navegador para errores
+
+2. **Migraciones fallan**:
+   - Verificar configuración de base de datos en `.env`
+   - Asegurar que la base de datos existe
+   - Comprobar permisos del usuario de BD
+
+3. **No se muestran actualizaciones**:
+   - Verificar conexión WebSocket en consola del navegador
+   - Comprobar que el servidor WebSocket esté activo
+   - Revisar logs del servidor para errores
+
+## Contribución
+
+Para contribuir al proyecto:
+
+1. Fork del repositorio
+2. Crear rama para nueva funcionalidad
+3. Realizar cambios con tests apropiados
+4. Enviar pull request con descripción detallada
+
+## Licencia
+
+Este proyecto está bajo la licencia MIT. Ver archivo LICENSE para más detalles.
