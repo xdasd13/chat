@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\AveriasModel;
+use App\Libraries\WebSocketClient;
 
 class Averias extends BaseController
 {
@@ -48,7 +49,14 @@ class Averias extends BaseController
         ];
 
         // Insertar en la base de datos
-        if ($this->averiasModel->insert($data)) {
+        if ($insertedId = $this->averiasModel->insert($data)) {
+            // Obtener la avería recién insertada
+            $nuevaAveria = $this->averiasModel->find($insertedId);
+            
+            // Enviar notificación WebSocket
+            $webSocketClient = new WebSocketClient();
+            $webSocketClient->notifyNewAveria($nuevaAveria);
+            
             return redirect()->to('/averias/listar')->with('success', 'Avería registrada exitosamente');
         } else {
             return redirect()->back()->withInput()->with('error', 'Error al registrar la avería');
@@ -67,6 +75,13 @@ class Averias extends BaseController
         $nuevoStatus = $averia['status'] === 'pendiente' ? 'solucionado' : 'pendiente';
         
         if ($this->averiasModel->update($id, ['status' => $nuevoStatus])) {
+            // Obtener la avería actualizada
+            $averiaActualizada = $this->averiasModel->find($id);
+            
+            // Enviar notificación WebSocket
+            $webSocketClient = new WebSocketClient();
+            $webSocketClient->notifyStatusUpdate($averiaActualizada);
+            
             return redirect()->to('/averias/listar')->with('success', 'Status actualizado exitosamente');
         } else {
             return redirect()->to('/averias/listar')->with('error', 'Error al actualizar el status');
