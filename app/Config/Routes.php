@@ -12,6 +12,7 @@ $routes->group('averias', function($routes) {
     $routes->get('/', 'Averias::index');
     $routes->get('listar', 'Averias::listar');
     $routes->get('registrar', 'Averias::registrar');
-    $routes->post('guardar', 'Averias::guardar');
-    $routes->get('actualizar/(:num)', 'Averias::actualizar/$1');
+    $routes->post('guardar', 'Averias::guardar', ['filter' => 'csrf']);
+    $routes->get('soluciones', 'Averias::soluciones');
+    $routes->post('marcarSolucionada/(:num)', 'Averias::marcarSolucionada/$1', ['filter' => 'csrf']);
 });
