@@ -29,6 +29,17 @@ abstract class BaseController extends Controller
     protected $request;
 
     /**
+     * Validates CSRF token
+     *
+     * @return bool
+     */
+    protected function validateCSRF(): bool
+    {
+        $csrf = csrf_hash();
+        return $csrf !== null && $this->request->getPost('csrf_token') === $csrf;
+    }
+
+    /**
      * An array of helpers to be loaded automatically upon
      * class instantiation. These helpers will be available
      * to all other controllers that extend BaseController.

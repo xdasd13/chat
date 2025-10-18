@@ -32,59 +32,123 @@ class Averias extends BaseController
 
     public function guardar()
     {
-        // Validar datos
-        if (!$this->validate([
-            'cliente' => 'required|max_length[50]',
-            'problema' => 'required|max_length[100]'
-        ])) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-        }
+        try {
+            // Sanitizar entrada
+            $cliente = $this->request->getPost('cliente');
+            $problema = $this->request->getPost('problema');
 
-        // Preparar datos para insertar
-        $data = [
-            'cliente' => $this->request->getPost('cliente'),
-            'problema' => $this->request->getPost('problema'),
-            'fechaHora' => date('Y-m-d H:i:s'), // Fecha y hora actual del sistema
-            'status' => 'pendiente' // Estado automático por defecto
-        ];
+            // Validar datos
+            if (!$this->validate([
+                'cliente' => 'required|max_length[50]',
+                'problema' => 'required|max_length[100]'
+            ])) {
+                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            }
 
-        // Insertar en la base de datos
-        if ($insertedId = $this->averiasModel->insert($data)) {
+            // Preparar datos para insertar
+            $data = [
+                'cliente' => $cliente,
+                'problema' => $problema,
+                'fechaHora' => date('Y-m-d H:i:s'),
+                'status' => 'pendiente'
+            ];
+
+            // Iniciar transacción
+            $db = \Config\Database::connect();
+            $db->transStart();
+
+            // Insertar en la base de datos
+            $insertedId = $this->averiasModel->insert($data);
+            if (!$insertedId) {
+                throw new \Exception('Error al insertar en la base de datos');
+            }
+
             // Obtener la avería recién insertada
             $nuevaAveria = $this->averiasModel->find($insertedId);
-            
+            if (!$nuevaAveria) {
+                throw new \Exception('Error al recuperar la avería insertada');
+            }
+
             // Enviar notificación WebSocket
             $webSocketClient = new WebSocketClient();
-            $webSocketClient->notifyNewAveria($nuevaAveria);
-            
-            return redirect()->to('/averias/listar')->with('success', 'Avería registrada exitosamente');
-        } else {
-            return redirect()->back()->withInput()->with('error', 'Error al registrar la avería');
+            if (!$webSocketClient->notifyNewAveria($nuevaAveria)) {
+                log_message('warning', 'No se pudo enviar la notificación WebSocket');
+            }
+
+            // Completar transacción
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \Exception('Error en la transacción de base de datos');
+            }
+
+            return redirect()->to('/averias/listar')
+                           ->with('success', 'Avería registrada exitosamente');
+
+        } catch (\Exception $e) {
+            log_message('error', '[Averias::guardar] Error: ' . $e->getMessage());
+            return redirect()->back()
+                           ->withInput()
+                           ->with('error', 'Error al registrar la avería: ' . $e->getMessage());
         }
     }
 
-    public function actualizar($id)
+    public function soluciones()
     {
-        $averia = $this->averiasModel->find($id);
-        
-        if (!$averia) {
-            return redirect()->to('/averias/listar')->with('error', 'Avería no encontrada');
-        }
+        $data['averiasSolucionadas'] = $this->averiasModel
+            ->where('status', 'solucionado')
+            ->orderBy('fechaHora', 'DESC')
+            ->findAll();
+        return view('averias/soluciones', $data);
+    }
 
-        // Cambiar status
-        $nuevoStatus = $averia['status'] === 'pendiente' ? 'solucionado' : 'pendiente';
-        
-        if ($this->averiasModel->update($id, ['status' => $nuevoStatus])) {
+    public function marcarSolucionada($id)
+    {
+        try {
+            $averia = $this->averiasModel->find($id);
+            
+            if (!$averia) {
+                throw new \Exception('Avería no encontrada');
+            }
+
+            $db = \Config\Database::connect();
+            $db->transStart();
+
+            // Actualizar estado
+            $data = [
+                'status' => 'solucionado',
+                'fecha_solucion' => date('Y-m-d H:i:s')
+            ];
+
+            if (!$this->averiasModel->update($id, $data)) {
+                throw new \Exception('Error al actualizar la avería');
+            }
+
             // Obtener la avería actualizada
             $averiaActualizada = $this->averiasModel->find($id);
             
             // Enviar notificación WebSocket
             $webSocketClient = new WebSocketClient();
-            $webSocketClient->notifyStatusUpdate($averiaActualizada);
-            
-            return redirect()->to('/averias/listar')->with('success', 'Status actualizado exitosamente');
-        } else {
-            return redirect()->to('/averias/listar')->with('error', 'Error al actualizar el status');
+            $webSocketClient->notifyAveriaSolucionada($averiaActualizada);
+
+            $db->transComplete();
+
+            if ($db->transStatus() === false) {
+                throw new \Exception('Error en la transacción');
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Avería marcada como solucionada'
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', '[Averias::marcarSolucionada] Error: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => $e->getMessage()
+            ])->setStatusCode(500);
         }
     }
+
 }
