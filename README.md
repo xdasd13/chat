@@ -85,11 +85,11 @@ php websocket-server.php
 
 ## URLs del Sistema
 
-- **Página Principal**: `http://localhost:8080/` (o `http://localhost/chat/`)
-- **Listar Averías**: `http://localhost:8080/averias/listar`
-- **Registrar Avería**: `http://localhost:8080/averias/registrar`
-- **Ver Solucionadas**: `http://localhost:8080/averias/soluciones`
-- **WebSocket**: `ws://localhost:8080`
+- **Página Principal**: `http://chat.test/`
+- **Listar Averías**: `http://chat.test/averias/listar`
+- **Registrar Avería**: `http://chat.test/averias/registrar`
+- **Ver Solucionadas**: `http://chat.test/averias/soluciones`
+- **WebSocket**: `ws://chat.test`
 
 ## Flujo de Trabajo
 
