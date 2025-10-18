@@ -47,7 +47,7 @@
                             </div>
                         <?php endif; ?>
 
-                        <form action="<?= base_url('averias/guardar') ?>" method="POST">
+                        <form action="<?= base_url('averias/guardar') ?>" method="POST" id="averiaForm" class="needs-validation" novalidate>
                             <?= csrf_field() ?>
                             
                             <div class="mb-3">
@@ -56,7 +56,11 @@
                                 </label>
                                 <input type="text" class="form-control" id="cliente" name="cliente" 
                                        value="<?= old('cliente') ?>" required maxlength="50"
+                                       pattern="^[a-zA-Z0-9\s]+$"
                                        placeholder="Ingrese el nombre del cliente">
+                                <div class="invalid-feedback">
+                                    Por favor ingrese un nombre válido (solo letras, números y espacios)
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -66,7 +70,37 @@
                                 <textarea class="form-control" id="problema" name="problema" rows="3" 
                                           required maxlength="100" 
                                           placeholder="Describa el problema reportado"><?= old('problema') ?></textarea>
+                                <div class="invalid-feedback">
+                                    Por favor ingrese una descripción del problema
+                                </div>
+                                <div class="form-text">
+                                    <span id="caracteresRestantes">100</span> caracteres restantes
+                                </div>
                             </div>
+
+                            <script>
+                                document.getElementById('problema').addEventListener('input', function() {
+                                    const maxLength = this.getAttribute('maxlength');
+                                    const currentLength = this.value.length;
+                                    document.getElementById('caracteresRestantes').textContent = maxLength - currentLength;
+                                });
+
+                                // Validación del formulario
+                                (function () {
+                                    'use strict'
+                                    var forms = document.querySelectorAll('.needs-validation')
+                                    Array.prototype.slice.call(forms)
+                                        .forEach(function (form) {
+                                            form.addEventListener('submit', function (event) {
+                                                if (!form.checkValidity()) {
+                                                    event.preventDefault()
+                                                    event.stopPropagation()
+                                                }
+                                                form.classList.add('was-validated')
+                                            }, false)
+                                        })
+                                })()
+                            </script>
 
                             <div class="alert alert-info">
                                 <i class="fas fa-info-circle me-2"></i>

@@ -61,15 +61,17 @@ class WebSocketClient
             $message = json_encode($data);
             $frame = $this->createFrame($message);
             socket_write($socket, $frame);
-
-            // Cerrar conexión
-            socket_close($socket);
             
             return true;
 
         } catch (\Exception $e) {
+            log_message('error', "Error WebSocket: " . $e->getMessage());
             error_log("Error WebSocket: " . $e->getMessage());
             return false;
+        } finally {
+            if (isset($socket) && is_resource($socket)) {
+                socket_close($socket);
+            }
         }
     }
 
@@ -119,6 +121,17 @@ class WebSocketClient
     {
         return $this->sendMessage([
             'type' => 'status_update',
+            'averia' => $averia
+        ]);
+    }
+
+    /**
+     * Notificar avería solucionada
+     */
+    public function notifyAveriaSolucionada($averia)
+    {
+        return $this->sendMessage([
+            'type' => 'averia_solucionada',
             'averia' => $averia
         ]);
     }

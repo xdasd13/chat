@@ -39,6 +39,17 @@ class AveriasWebSocket implements MessageComponentInterface
                     $this->broadcastStatusUpdate($data['averia']);
                     break;
                 
+                case 'averia_solucionada':
+                    // Enviar avería solucionada a todos los clientes
+                    $this->broadcastAveriaSolucionada($data['averia']);
+                    break;
+                
+                case 'ping':
+                    // Responder al heartbeat
+                    $from->send(json_encode(['type' => 'pong']));
+                    echo "Heartbeat respondido a conexión {$from->resourceId}\n";
+                    break;
+                
                 default:
                     echo "Tipo de mensaje desconocido: " . $data['type'] . "\n";
             }
@@ -91,5 +102,22 @@ class AveriasWebSocket implements MessageComponentInterface
         }
 
         echo "Actualización de estado enviada a " . count($this->clients) . " clientes\n";
+    }
+
+    /**
+     * Enviar avería solucionada a todos los clientes conectados
+     */
+    private function broadcastAveriaSolucionada($averia)
+    {
+        $message = json_encode([
+            'type' => 'averia_solucionada',
+            'averia' => $averia
+        ]);
+
+        foreach ($this->clients as $client) {
+            $client->send($message);
+        }
+
+        echo "Avería solucionada enviada a " . count($this->clients) . " clientes\n";
     }
 }

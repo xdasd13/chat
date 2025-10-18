@@ -12,7 +12,7 @@ class AveriasModel extends Model
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['cliente', 'problema', 'fechaHora', 'status'];
+    protected $allowedFields = ['cliente', 'problema', 'fechaHora', 'status', 'fecha_solucion'];
 
     // Dates
     protected $useTimestamps = false;

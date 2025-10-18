@@ -6,162 +6,196 @@ Sistema web desarrollado en CodeIgniter 4 para la gestión de averías con actua
 
 Este sistema permite registrar, listar y gestionar averías de clientes con las siguientes características:
 
-- Registro de nuevas averías con cliente y descripción del problema
-- Fecha y hora automática del sistema
-- Estado automático inicial como "pendiente"
-- Listado de todas las averías con posibilidad de cambiar estados
-- Actualizaciones en tiempo real sin necesidad de refrescar la página
-- Comunicación bidireccional mediante WebSockets
+- ✅ Registro de nuevas averías con cliente y descripción del problema
+- ✅ Fecha y hora automática del sistema
+- ✅ Estado automático inicial como "pendiente"
+- ✅ Listado de averías pendientes con confirmación SweetAlert
+- ✅ Vista separada de averías solucionadas
+- ✅ Actualizaciones en tiempo real con WebSockets
+- ✅ Animaciones suaves y UX moderna
+- ✅ Notificaciones automáticas entre vistas
 
-## Características Principales
+## Requisitos del Sistema
 
-### Funcionalidades del Sistema
-- **Registro de Averías**: Formulario simple para registrar cliente y problema
-- **Listado Dinámico**: Vista de todas las averías con filtros por estado
-- **Cambio de Estados**: Posibilidad de marcar averías como solucionadas o pendientes
-- **Tiempo Real**: Actualizaciones instantáneas entre múltiples navegadores
-- **Contadores Automáticos**: Estadísticas en tiempo real de averías pendientes y solucionadas
+- **PHP 8.0+**
+- **Composer**
+- **MySQL/MariaDB**
+- **Servidor web** (Apache/Nginx) o **Laragon**
+- **Extensiones PHP**: `php-sockets`, `php-json`, `php-mysqli`
 
-### Tecnologías Utilizadas
-- **Backend**: CodeIgniter 4, PHP 8.1+
-- **Frontend**: Bootstrap 5, JavaScript ES6
-- **Base de Datos**: MySQL/MariaDB
-- **WebSockets**: Ratchet (ReactPHP)
-- **Tiempo Real**: WebSocket Server personalizado
+## Instalación y Configuración
 
-## Instalación
-
-### Requisitos Previos
-- PHP 8.1 o superior
-- Composer
-- MySQL/MariaDB
-- Servidor web (Apache/Nginx)
-
-### Pasos de Instalación
-
-1. **Clonar el repositorio**
-   ```bash
-   git clone <repository-url>
-   cd chat
-   ```
-
-2. **Instalar dependencias**
-   ```bash
-   composer install
-   ```
-
-3. **Configurar el entorno**
-   - Copiar `.env.example` a `.env`
-   - Configurar la base de datos en `.env`:
-     ```
-     CI_ENVIRONMENT = development
-     database.default.hostname = localhost
-     database.default.database = WOWDB
-     database.default.username = tu_usuario
-     database.default.password = tu_contraseña
-     database.default.DBDriver = MySQLi
-     ```
-
-4. **Crear la base de datos**
-   ```sql
-   CREATE DATABASE WOWDB;
-   USE WOWDB;
-   ```
-
-5. **Ejecutar migraciones** (opcional)
-   ```bash
-   php spark migrate
-   ```
-
-## Uso del Sistema
-
-### Iniciar el Servidor WebSocket
-
-Para habilitar las actualizaciones en tiempo real, debe iniciarse el servidor WebSocket:
+### 1. Clonar o Descargar el Proyecto
 
 ```bash
+git clone [URL_DEL_REPOSITORIO]
+cd chat
+```
+
+### 2. Instalar Dependencias
+
+```bash
+composer install
+```
+
+### 3. Configurar Base de Datos
+
+#### Opción A: Usar script SQL incluido
+```bash
+# Importar el archivo SQL en MySQL
+mysql -u root -p < app/Database/database.sql
+```
+
+#### Opción B: Configurar manualmente
+1. Crear base de datos `WOWDB`
+2. Ejecutar migraciones:
+```bash
+php spark migrate
+```
+
+### 4. Configurar Variables de Entorno
+
+Editar `app/Config/Database.php` si es necesario:
+```php
+'hostname' => 'localhost',
+'username' => 'root',
+'password' => '',
+'database' => 'WOWDB',
+```
+
+### 5. Levantar el Proyecto
+
+#### Paso 1: Iniciar Servidor Web
+```bash
+# Opción A: Servidor integrado de PHP
+php spark serve
+
+# Opción B: Si usas Laragon
+# El proyecto ya estará disponible en http://localhost/chat
+```
+
+#### Paso 2: Iniciar Servidor WebSocket
+```bash
+# En una terminal separada
 php server.php
+
+# O usar el servidor dedicado (recomendado)
+php websocket-server.php
 ```
 
-El servidor se ejecutará en el puerto 8080 y mostrará:
-```
-=== Servidor WebSocket de Averías ===
-Servidor iniciado en puerto 8080
-URL: ws://localhost:8080
-Presiona Ctrl+C para detener el servidor
-```
+## URLs del Sistema
 
-### Acceder al Sistema
+- **Página Principal**: `http://localhost:8080/` (o `http://localhost/chat/`)
+- **Listar Averías**: `http://localhost:8080/averias/listar`
+- **Registrar Avería**: `http://localhost:8080/averias/registrar`
+- **Ver Solucionadas**: `http://localhost:8080/averias/soluciones`
+- **WebSocket**: `ws://localhost:8080`
 
-1. **Registrar Averías**: `http://chat.test/averias/registrar`
-2. **Listar Averías**: `http://chat.test/averias/listar`
+## Flujo de Trabajo
 
-### Funcionalidades Principales
+### 1. Registrar Nueva Avería
+1. Ir a "Nueva Avería"
+2. Llenar formulario (Cliente y Problema)
+3. Guardar → Aparece automáticamente en "Averías Pendientes"
 
-#### Registro de Averías
-- Acceder al formulario de registro
-- Completar los campos: Cliente y Problema
-- La fecha, hora y estado se asignan automáticamente
-- Al guardar, se redirige a la lista y se notifica en tiempo real
+### 2. Solucionar Avería
+1. En "Averías Pendientes", clic en "Marcar Solucionado"
+2. Confirmar en SweetAlert: "¿El problema fue solucionado?"
+3. La avería desaparece de pendientes y aparece en "Solucionadas"
 
-#### Gestión de Averías
-- Ver todas las averías en una tabla responsive
-- Cambiar estado entre "pendiente" y "solucionado"
-- Ver contadores automáticos de estados
-- Recibir actualizaciones en tiempo real sin refrescar
+### 3. Tiempo Real
+- Las actualizaciones se sincronizan automáticamente entre pestañas
+- Indicador visual: 🟢 Tiempo Real Activo / 🔴 Reconectando...
 
 ## Estructura del Proyecto
 
 ```
-app/
-├── Controllers/
-│   └── Averias.php          # Controlador principal
-├── Models/
-│   └── AveriasModel.php     # Modelo de datos
-├── Views/
-│   └── averias/
-│       ├── listar.php       # Vista de listado
-│       └── registrar.php    # Vista de registro
-├── WebSocket/
-│   └── AveriasWebSocket.php # Servidor WebSocket
-├── Libraries/
-│   └── WebSocketClient.php  # Cliente WebSocket
-└── Config/
-    └── Routes.php           # Configuración de rutas
-
-server.php                   # Servidor WebSocket independiente
+chat/
+├── app/
+│   ├── Controllers/
+│   │   └── Averias.php          # Controlador principal
+│   ├── Models/
+│   │   └── AveriasModel.php     # Modelo de datos
+│   ├── Views/
+│   │   └── averias/             # Vistas del sistema
+│   ├── Libraries/
+│   │   └── WebSocketClient.php  # Cliente WebSocket
+│   ├── WebSocket/
+│   │   └── AveriasWebSocket.php # Servidor WebSocket
+│   └── Database/
+│       ├── database.sql         # Script de base de datos
+│       └── Migrations/          # Migraciones
+├── server.php                   # Servidor WebSocket original
+├── websocket-server.php         # Servidor WebSocket mejorado
+└── README.md                    # Este archivo
 ```
 
-## Arquitectura WebSocket
+## Solución de Problemas
 
-### Flujo de Comunicación
+### WebSocket no conecta
+```bash
+# Verificar que el puerto 8080 esté libre
+netstat -an | findstr :8080
 
-1. **Registro de Avería**:
-   - Usuario completa formulario → Controlador guarda en BD → Notifica WebSocket → Actualiza todas las vistas conectadas
+# Reiniciar servidor WebSocket
+php websocket-server.php
+```
 
-2. **Cambio de Estado**:
-   - Usuario cambia estado → Controlador actualiza BD → Notifica WebSocket → Actualiza todas las vistas conectadas
+### Error de base de datos
+```bash
+# Verificar conexión
+php spark db:table averias
 
-### Componentes WebSocket
+# Ejecutar migraciones
+php spark migrate
+```
 
-- **AveriasWebSocket.php**: Servidor que maneja conexiones y mensajes
-- **WebSocketClient.php**: Cliente que envía notificaciones desde PHP
-- **JavaScript Client**: Código frontend que recibe actualizaciones en tiempo real
+### Problemas de permisos
+```bash
+# En Linux/Mac
+chmod -R 755 writable/
+```
 
-### Problemas Comunes
+## Tecnologías Utilizadas
 
-1. **WebSocket no conecta**:
-   - Verificar que el servidor esté ejecutándose: `php server.php`
-   - Comprobar que el puerto 8080 esté disponible
-   - Revisar la consola del navegador para errores
+- **Backend**: CodeIgniter 4, PHP 8+
+- **Frontend**: Bootstrap 5, SweetAlert2, JavaScript ES6
+- **WebSocket**: Ratchet/Pawl
+- **Base de Datos**: MySQL/MariaDB
+- **Tiempo Real**: WebSockets con heartbeat
+- **Validación**: CSRF Protection, Server-side validation
 
-2. **Migraciones fallan**:
-   - Verificar configuración de base de datos en `.env`
-   - Asegurar que la base de datos existe
-   - Comprobar permisos del usuario de BD
+## Características Técnicas
 
-3. **No se muestran actualizaciones**:
-   - Verificar conexión WebSocket en consola del navegador
-   - Comprobar que el servidor WebSocket esté activo
-   - Revisar logs del servidor para errores
+### Seguridad
+- ✅ Protección CSRF en formularios
+- ✅ Validación de datos server-side
+- ✅ Escape de HTML para prevenir XSS
+- ✅ Sanitización de entradas
+
+### Performance
+- ✅ Conexiones WebSocket persistentes
+- ✅ Heartbeat para mantener conexiones vivas
+- ✅ Reconexión automática con backoff exponencial
+- ✅ Animaciones CSS optimizadas
+
+### UX/UI
+- ✅ Diseño responsive con Bootstrap 5
+- ✅ Confirmaciones con SweetAlert2
+- ✅ Indicadores de estado en tiempo real
+- ✅ Animaciones suaves de transición
+- ✅ Notificaciones no intrusivas
+
+## Autor
+
+Desarrollado como proyecto educativo para demostrar:
+- Integración de WebSockets en CodeIgniter 4
+- Actualizaciones en tiempo real
+- Buenas prácticas de UX/UI
+- Arquitectura MVC limpia
+- Comunicación bidireccional mediante WebSockets
+
+---
+
+**¡Listo para usar!** 🚀 Sigue las instrucciones de instalación paso a paso y tendrás un sistema completo de gestión de averías con actualizaciones en tiempo real funcionando perfectamente.
 
